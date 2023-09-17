@@ -1,0 +1,295 @@
+---
+title: "<span style='color:white;'>Starbucks Drinks</span>"
+author: "<span style='color:white;'>Mike Avens</span>"
+date: "<span style='color:white;'>4/27/2022</span>"
+output: html_document
+css: style.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+library(tidyverse) # Core packages for data wrangling and visualization
+library(readxl)
+library(ggthemes)
+library(gridExtra)
+library(knitr) # For tables and other goodies
+starbucks <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-12-21/starbucks.csv')
+```
+<div class = "page_wrapper">
+
+<h3>The story of Coffee</h3>
+
+We all love to start our mornings with a sip of an incredible drink that revitalizes our spirit and gets us ready to conquer the day, called coffee. Originally, the tradition to start mornings with coffee started during the British East India Company. In the early 17th century it started importing Javan coffee beans to Europe. The demand was incredible and quickly outgrew the supply.<br>
+
+It was coffee shops in Netherlands that gave rise to the culture of Coffee. On the other hand, the earliest records of coffee production and drinking rituals go further back to 15th century Yemen. The region has all the ideal characteristics for growing coffee beans and continues to deliver some of the best beans in the world.^[https://fadmagazine.com/2019/08/19/coffee-culture-the-origins-of-your-morning-cup-of-joe/] <br> <br>
+
+The story that coffee helped the world to shed its morning alcohol routines. For example, before the British used to like to start their days with a cup of tea and rum. For US population, a hard cider was a to go as the morning drink, and Germans liked, you guessed it, beer.<br><br>
+
+At the onset of the Industrial Revolution, coffee became the perfect drink to keep one energized for the toil at the factory to come. At the same time, it proved effective against hangover and people discovered that drinking two cups of it was better than one, and perhaps three cups were better than two. 
+<br>
+It became so widespread that Mark Twain described the typical American breakfast of the time as beefsteak and coffee.^[https://fadmagazine.com/2019/08/19/coffee-culture-the-origins-of-your-morning-cup-of-joe/]
+<br><br>
+In fact now, coffee became the second most popular drink in the world!
+<br><br>
+
+<h3>All day, every day!</h3>
+
+Now people drink coffee to get some energy and wake up. Indeed, coffee helps you improve alertness and clear thinking, especially after sleep deprivation, all thanks to caffeine. One drink can remove fatigue and increase productivity.There are other health benefits of coffee, such as: lower risk of developing second type diabetes, lower risk of heart diseases, lower risk of cancer and Parkinson disease.^[https://www.webmd.com/vitamins/ai/ingredientmono-980/coffee]
+<br><br>
+However, not all as good as it seems. These health benefits are present only when the consumption is moderate - about 4 cups or 400mg of caffeine. If such moderation is not followed the following problems may arise: insomnia,nervousness and restlessness, stomach upset, nausea and vomiting, increased heart and breathing rate, and other. Of course the caffeine tolerance is different for each person and grows higher with regular consumption.<br> <br>
+
+One more reason why people can't live without coffee:
+<br>
+The body produces cortisol which helps the body deal with stress. It also helps with blood pressure/sugar levels. But apparently production levels in the body are higher when the body is exposed to day light and times when people are in the sun. The times are approximately around 8am - 9am, around 12pm - 1pm (lunchtime) and around 5pm - 6pm.
+
+Coffee breaks were originally designed to fill the gaps, so at 10am and 3pm you would find a lot of work environments would have a break in order to consume coffee at these times to make you feel better (which makes sense as the caffeine makes up for the lack of cortisol being produced).
+
+The problem is that people started drinking coffee first thing in the morning between 8am and 9am which is coinciding with the naturally produced cortisol so the body would tend to crave the more potent of the two which is of course caffeine. ^[https://www.washingtonpost.com/news/wonk/wp/2015/06/01/when-to-drink-coffee-so-you-get-the-most-out-of-the-caffeine/]
+
+There are many other reasons why coffee may not be a healthy choice for people. Nevertheless, if you do choose to start you day with a delicious cup of latte or espresso, let's look at one of the most popular coffeehouses in the world - Starbucks. 
+<br><br>
+
+As of 2019, Starbucks has opened more than 30,626 outlets across the globe. On average 8,070,428 cups of coffe is being sold daily. That's a <b>LOT</b> of coffee.^[https://www.referralcandy.com/blog/starbucks-marketing-strategy]
+
+<br> <br>
+
+I would like to look at the Starbucks drinks and try to figure out top 5 drink in each category, considering the healthiness factor:
+
+ <ul>
+  <li>"The sleep destroyer"</li>
+  <li>"No milk please"</li>
+  <li>"I care about my blood pressure"</li>
+  <li>"Give me something SWEET"</li>
+</ul> 
+
+<h3>"The sleep destroyer"</h3>
+
+In this category I will look at the the most caffeinated drinks. 
+Let's look at the caffeine distribution between all drinks.
+
+```{r}
+starbucks %>% 
+  ggplot(aes(x = caffeine_mg, fill = "red"))+geom_histogram()+
+   theme_economist_white() +
+  labs(x = "Amount of caffeine, mg", y = "Number of drinks", title = "Caffeine distribution between drinks") +
+  scale_fill_brewer(palette = "Dark2")+
+  theme(legend.position = "none")
+```
+<br><br>As we can see most of the drinks are between 0 and 200 mg of caffeine but here we want the most caffeinated and the biggest drink size. The biggest size is needed to help protect our liver. Liver is the organ that metabolizes the caffeine and tries to absorb it. Anything that could not be absorbed is transferred into kidneys. For the purposes of protecting both these organs we try to increase the ratio between the volume and caffeine. The less concentration the easier it is for our body to metabolize it and the bigger the drink, the longer it takes for you to finish it, gradually increasing the caffeine level, what is healthier than just a single shot. Besides, we have to try and reduce sugar level to keep us extra healthy while still getting that "energy punch".^[https://foodinsight.org/caffeine/things-know-how-caffeine-metabolism-works/]
+<br><br>
+But for the fun of it let's see what would be the probability of you picking a drink at random,based on the size, with more than 200mg of caffeine, aka drinks that are close enough for this category:
+
+```{r}
+starbucks %>% drop_na(caffeine_mg) %>% filter(serv_size_m_l != 0) %>% 
+  group_by(size) %>% 
+  summarise(avg_caffeine = mean(caffeine_mg),
+            count=n(), 
+            probability_percent = (1-pnorm(200, mean = avg_caffeine, 
+                            sd = sd(caffeine_mg)))*100) %>%
+  drop_na()
+```
+Clearly, from this table, you should pick short or tall for the lowest probability of getting something extremely caffeinated. So if you ever give your order only based on the size (very weird) but you care about your health go with either short or tall. <br>
+<br>
+Before any analysis and plotting, let's clean the data. The sizes for espresso shot are left 0 for serving size column, after a couple of quick google searches we can populate that column with the right values:
+
+```{r}
+starbucks <- starbucks %>% 
+  mutate(serv_size_m_l = if_else(serv_size_m_l == 0 & size =="doppio" , 60, serv_size_m_l))
+starbucks <- starbucks %>% 
+  mutate(serv_size_m_l = if_else(serv_size_m_l == 0 & size =="solo" , 22, serv_size_m_l))
+starbucks <- starbucks %>% 
+  mutate(serv_size_m_l = if_else(serv_size_m_l == 0 & size =="triple" , 66, serv_size_m_l))
+starbucks <- starbucks %>% 
+  mutate(serv_size_m_l = if_else(serv_size_m_l == 0 & size =="quad" , 89, serv_size_m_l))
+starbucks <- starbucks %>% 
+  mutate(serv_size_m_l = if_else(serv_size_m_l == 0 & size =="1 shot" , 30, serv_size_m_l))
+
+
+```
+However, the two entries "Protein and Fiber powder" and "Matcha Green Tea Powder" are left. Since it is not a drink I will filter them out in every calculation, however, they will come in handy later!<br><br>
+
+Alright, let's finally look at our contestants for "the sleep destroyer":
+
+```{r}
+starbucks %>% 
+  filter(caffeine_mg >=300) %>%
+  arrange(-caffeine_mg) %>% 
+  ggplot(aes(y = product_name, x = serv_size_m_l/caffeine_mg))+
+  geom_segment( aes(x=serv_size_m_l/caffeine_mg, xend=0, y=product_name, yend=product_name, color = "red"), size = 1.3)+
+  geom_point(size = 2)+
+  theme_economist_white() +
+  labs(x = "Volume to caffeine ratio (higher better)", y = "", title = "Volume to caffeine ratio") +
+  scale_color_brewer(palette = "Dark2")+
+  theme(legend.position = "none")
+
+```
+<br>As we can see we have some definitive winners in this category, however, let's look at the sugar levels.
+
+```{r}
+starbucks %>% 
+  filter(caffeine_mg >=300) %>% 
+  arrange(sugar_g) %>% 
+  ggplot(aes(y = product_name, x = sugar_g))+
+   geom_segment( aes(x=sugar_g, xend=0, y=product_name, yend=product_name,color = "red"), size = 1.3)+
+  geom_point(size = 2)+
+  theme_economist_white() +
+  labs(x = "Amount of sugar, g", y = "", title = "Amount of sugar in the drink") +
+  scale_color_brewer(palette = "Dark2")+
+  theme(legend.position = "none")
+  
+```
+<br>Unfortunately, for our bodies sake, we have to omit the sweetest drinks: Vanilla sweet Cream Cold Brew and Doubleshot on ice, that is unfortunate, since they have one of the best ratios. Now the graph looks like this: 
+
+```{r}
+starbucks %>% 
+  filter(caffeine_mg >=300, sugar_g <10) %>%
+  arrange(-caffeine_mg) %>% 
+  ggplot(aes(y = product_name, x = serv_size_m_l/caffeine_mg))+
+  geom_point(size = 2)+
+  geom_segment( aes(x=serv_size_m_l/caffeine_mg, xend=0, y=product_name, yend=product_name), size = 1.3)
+```
+<br> Now we have our winners. The following table is top five drinks if you want to be awake for the following several hours while still taking into consideration your health:
+
+```{r}
+starbucks %>% 
+  filter(caffeine_mg >=300, sugar_g <10, serv_size_m_l/caffeine_mg>1.6) %>%
+  arrange(-caffeine_mg)
+```
+
+<h3>No milk please</h3>
+This type of orders are usually very specific, however, if you are a lactose intolerant person, but don't know what to get, this category is for you. First and foremost, what is a lactose?<br> Lactose, a disaccharide, is a sugar composed of galactose and glucose subunits that is contained in the cow milk. Starbucks offers other types of milk: coconut and soy, and of course they have no milk option. For the same reasons as before I will look at the lowest levels of sugar. Also, based on the time article^[https://time.com/5125580/soy-milk-healthiest-plant-based/], I will look at only soy milk or now milk options, since soy milk is considered healthier. It’s also the highest in protein of all the alternative milk options studied, as well as contains phytonutrients known as isoflavones, which have been shown to have cancer-fighting properties. I will also assume that the tolerance to the caffeine is low, thus giving a nice small energy boost. 
+
+```{r}
+starbucks %>% 
+  filter(caffeine_mg <100 , sugar_g == 0, milk == 4)
+  
+```
+This is very unexpected. Stabucks offers only one drink with soy milk and caffeine level less than 100 mg. Therefore it definitely goes on our "No milk please" list. Now, let's look at the drinks with no milk and no sugar.
+```{r}
+starbucks %>% 
+  filter(caffeine_mg <100 , sugar_g == 0, milk == 0)
+  
+```
+Better, now let's look at hour familiar graph of volume/coffee ratio.
+```{r}
+starbucks %>% 
+  filter(caffeine_mg <100 , sugar_g == 0, milk == 0)%>%
+  mutate(ratio = serv_size_m_l/caffeine_mg) %>% 
+  ggplot(aes(y = product_name, x = serv_size_m_l/caffeine_mg))+
+  geom_segment( aes(x=serv_size_m_l/caffeine_mg, xend=0, y=product_name, yend=product_name, color = "red"), size = 1.3)+
+  geom_point(size = 2)+
+   theme_economist_white() +
+  labs(x = "Volume to caffeine ratio (higher better)", y = "", title = "Volume to caffeine ratio") +
+  scale_color_brewer(palette = "Dark2")+
+  theme(legend.position = "none")
+```
+<br>As seen on the graph, some of the drinks are off the chart, due to them having 0 caffeine. This is technically the healthiest drink since they are a herbal tea and they have no milk. I would have also added the protein and fiber scoop, however, the protein powders are usually made of cow milk, therefore they might have a trace of lactose which is no go for this category. 
+<br> Here are top 5 drinks for this category: 
+```{r}
+starbucks %>% 
+  filter(serv_size_m_l/caffeine_mg == Inf | product_name =="Espresso Macchiato", sugar_g ==0, caffeine_mg <100) %>% 
+  group_by(product_name) %>% 
+  summarise()
+```
+
+<h3>I care about my blood pressure</h3>
+This one is the epitome of healthiness. In this category we care about everything. Calories, sugar, caffeine, fat, sodium, etc.
+<br> 
+For starters let's make a quick graph of something that almost every single human being on earth nows: more sugar - more calories. 
+
+```{r}
+starbucks %>% 
+  ggplot(aes(x = sugar_g, y = calories, color = "red"))+
+  geom_point()+
+   theme_economist_white() +
+  labs(x = "Amount of sugar, g", y = "Calories", title = "Amount of calories based on the sugar content") +
+  scale_color_brewer(palette = "Dark2")+
+  theme(legend.position = "none")
+
+```
+<br>Clearly, that is true. A nice linear pattern emerges.<br>
+
+Now let's look at the amount of calories based on sugar and milk contents:
+```{r}
+starbucks %>% 
+  mutate(milk = if_else(milk == 0, "No milk", as.character(milk))) %>% 
+  mutate(milk = if_else(milk == 1, "Nonfat", as.character(milk))) %>%
+  mutate(milk = if_else(milk == 2, "2%", as.character(milk))) %>%
+  mutate(milk = if_else(milk == 3, "Soy", as.character(milk))) %>%
+  mutate(milk = if_else(milk == 4, "Coconut", as.character(milk))) %>%
+  mutate(milk = if_else(milk == 5, "Whole", as.character(milk))) %>%
+   ggplot(aes(x = milk, y = calories))+
+  geom_boxplot()+ facet_wrap(~milk)+ 
+  theme_economist_white() +
+  labs(x = "Type of milk",
+       y = "Calories",
+       title = "Caloric content based on the milk type") +
+  scale_fill_brewer(palette = "Dark2")+
+  theme(axis.ticks.x = element_blank(), axis.title.x = element_blank(), axis.text.x = element_blank())
+
+```
+<br>Based on the graph milk slightly increases the caloric level of a drink. Here, we want to minimize that. Yet, we know milk is 
+a healthy product. Especially soy milk, it's also vegan! However, as we already now that there is only one drink with low caffeine and no sugar with soy milk: Espresso Macchiato. Well, another good option is a coconut milk, it is considered to be an antioxidant.
+```{r}
+starbucks %>% 
+  filter(milk==0 | milk ==5, sugar_g ==0, caffeine_mg==0) %>%  group_by(product_name) %>% summarize()
+```
+Unfortunately, no coconut milk options are sugar free. Thus we are left with the same list as for second group. Nevertheless, there is one difference: to drinks in this category we add a protein & fiber powder. Here we do not care about the taste nor the looks. Raw "healthiness" only! Therefore for this category we have the same drinks as for the "No milk please" category, with an additional protein & fiber powder scoop.
+<h3>I want something SWEET</h3>
+This is the best category for those who have a sweet tooth. Here we look at the sweetest drinks, while trying to keep our calories to a minimum. Here I would relax the caffeine constraints and allow anything below 400 (a daily norm).
+```{r}
+starbucks %>% 
+  filter(sugar_g>87, caffeine_mg<=400)
+
+
+```
+These are top 10 sweetest drinks that starbucks offers. They have more than 80g of sugar!!! American Health Association recommends to consume no more than 36g of sugar daily for men and 25g of sugar for women.^[https://www.heart.org/en/healthy-living/healthy-eating/eat-smart/sugar/how-much-sugar-is-too-much] Unfortunately as good as those drinks sound with 87+ grams of sugar, we will limit it to a 36g. As well as that, I want to remove the trans fat, again for the health benefits
+
+```{r}
+starbucks %>% 
+  filter(sugar_g==36, trans_fat_g ==0)
+```
+Fiber is essential for our body. Also, it helps to regulate blood sugar levels. Therefore to keep our sweet tooth population healthy I will look at the non-zero amount of fiber in the drink.
+
+These are top 5 drinks with 36g of sugar.
+```{r}
+starbucks %>% 
+   filter(sugar_g==36, trans_fat_g ==0, fiber_g>0)
+```
+
+
+<h3> Summary </h3>
+
+Starbucks offers a huge assortment of drinks, yet only a few of them are actually healthy and might benefit you. Again if we look at a number of drink over the average amount of sugar in it.
+
+```{r}
+starbucks %>% 
+  group_by(product_name) %>% 
+  summarise(avg_sugar = mean(sugar_g)) %>% 
+  ggplot(aes(x= avg_sugar, fill = "red"))+geom_bar(width = 1)+
+ theme_economist_white() +
+  labs(x = "Average amount of sugar, g", y = "Number of drinks", title = "Average amount of sugar in a drink") +
+  scale_fill_brewer(palette = "Dark2")+
+  theme(legend.position = "none")
+```
+<br>On this graph it looks like there are a lot of drinks offered with 0 sugar. However, there are only 47 drinks with average sugar amount less than 25g out 93 drinks overall. That's why we had repeated entries for some of the categories. In the end I would like to leave the list of all healthy drinks based on the type of a drink. Some of them didn't make it into hour categories but were very close:
+
+
+
+```{r}
+for (i in c("Coffee","Tea","Latte ","Lemonade","Caffè","Smoothie","Cappuccino","Macchiato","Espresso", "Chocolate",           "Mocha", "Doubleshot", "Cold Brew")){
+  
+    print(i)
+    starbucks %>% filter(str_detect(product_name, i)) %>% 
+    filter(sugar_g <36, trans_fat_g ==0, calories<100, caffeine_mg<400)%>% 
+      group_by(product_name) %>%
+      summarise() %>%  
+      glimpse()
+    
+   
+}
+```
+
+
+
+</div>
